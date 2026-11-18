@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getaway | Payment</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Get<span>away</span></a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">Holidays</a></li>
+          <li><a href="car-rentals.html">Car Rentals</a></li>
+          <li><a href="bookings.html">Bookings</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-title">
+        <h1>Payment</h1>
+        <p>Check your booking and enter your payment details.</p>
+      </div>
+
+      <div class="payment-layout">
+        <!-- Booking summary -->
+        <aside class="info-box summary">
+          <img id="summary-photo" src="" alt="">
+          <h2 id="summary-name"></h2>
+          <dl class="info-list" id="summary-list"></dl>
+          <div class="total">
+            <span>Total</span>
+            <span id="total"></span>
+          </div>
+        </aside>
+
+        <!-- Payment details -->
+        <section class="info-box">
+          <h2>Payment details</h2>
+          <form id="payment-form">
+            <div class="form-grid">
+              <div class="field">
+                <label for="units" id="units-label">Number of nights</label>
+                <input type="number" id="units" min="1" max="30" value="3" required>
+              </div>
+              <div class="field">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="you@example.com" required>
+              </div>
+              <div class="field full">
+                <label for="card-name">Name on card</label>
+                <input type="text" id="card-name" placeholder="Full name" required>
+              </div>
+              <div class="field full">
+                <label for="card-number">Card number</label>
+                <input type="text" id="card-number" inputmode="numeric" placeholder="1234 5678 9012 3456"
+                       pattern="[0-9 ]{16,19}" title="Enter the 16-digit card number" required>
+              </div>
+              <div class="field">
+                <label for="expiry">Expiry date</label>
+                <input type="month" id="expiry" required>
+              </div>
+              <div class="field">
+                <label for="cvv">CVV</label>
+                <input type="text" id="cvv" inputmode="numeric" placeholder="123"
+                       pattern="[0-9]{3,4}" title="3 or 4 digits on the back of the card" required>
+              </div>
+            </div>
+
+            <div class="form-buttons">
+              <button type="submit" class="btn btn-gold">Pay now</button>
+              <a href="index.html" class="btn btn-outline" id="cancel-btn">Cancel request</a>
+            </div>
+            <p class="note">This is a class project. No real payment is taken and card details are not saved.</p>
+          </form>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <span>&copy; 2026 Getaway</span>
+      <span>Nathaniel Oshoba</span>
+    </div>
+  </footer>
+
+  <script src="/static/js/data.js"></script>
+  <script src="/static/js/main.js"></script>
+  <script>
+    // type=holiday or type=car tells us what is being booked
+    const type = getParam("type") === "car" ? "car" : "holiday";
+    const item = type === "car" ? (findCar(getParam("id")) || CARS[0]) : (findHoliday(getParam("id")) || HOLIDAYS[0]);
+    const unitWord = type === "car" ? "day" : "night";
+
+    const summaryRows = [];
+    let cancelLink;
+
+    if (type === "holiday") {
+      document.getElementById("summary-photo").src = holidayImage(item);
+      summaryRows.push(["Location", item.location]);
+      summaryRows.push(["Travel date", niceDate(getParam("date"))]);
+      summaryRows.push(["Guests", guestsText(getParam("adults"), getParam("children"))]);
+      cancelLink = "holiday.html?id=" + item.id + "&from=search&" + new URLSearchParams({
+        destination: getParam("destination"), date: getParam("date"),
+        adults: getParam("adults"), children: getParam("children"),
+      });
+    } else {
+      document.getElementById("summary-photo").src = carImage(item);
+      document.getElementById("units-label").textContent = "Number of days";
+      summaryRows.push(["Supplier", findCompany(item.company).name]);
+      summaryRows.push(["Pick-up location", getParam("location")]);
+      summaryRows.push(["Pick-up date", niceDate(getParam("date"))]);
+      summaryRows.push(["Driver's age", getParam("age")]);
+      cancelLink = "car.html?id=" + item.id + "&" + new URLSearchParams({
+        location: getParam("location"), date: getParam("date"), age: getParam("age"),
+      });
+    }
+    summaryRows.push(["Price", money(item.price) + " per " + unitWord]);
+
+    document.getElementById("summary-photo").alt = item.name;
+    document.getElementById("summary-name").textContent = item.name;
+    document.getElementById("cancel-btn").href = cancelLink;
+
+    summaryRows.forEach(function (row) {
+      const div = document.createElement("div");
+      div.innerHTML = "<dt></dt><dd></dd>";
+      div.querySelector("dt").textContent = row[0];
+      div.querySelector("dd").textContent = row[1];
+      document.getElementById("summary-list").appendChild(div);
+    });
+
+    // Total = price × nights (or days)
+    const units = document.getElementById("units");
+    function updateTotal() {
+      const count = Math.max(1, Number(units.value) || 1);
+      document.getElementById("total").textContent = money(item.price * count);
+    }
+    units.addEventListener("input", updateTotal);
+    updateTotal();
+
+    // Pay: save the booking in the browser, then show the Bookings page.
+    document.getElementById("payment-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      const count = Math.max(1, Number(units.value) || 1);
+      const booking = {
+        ref: "GA" + Date.now().toString().slice(-6),
+        type: type,
+        id: item.id,
+        date: getParam("date"),
+        units: count,
+        total: item.price * count,
+        adults: getParam("adults"),
+        children: getParam("children"),
+        location: getParam("location"),
+        age: getParam("age"),
+        cardEnding: document.getElementById("card-number").value.replace(/\D/g, "").slice(-4),
+      };
+      const bookings = getBookings();
+      bookings.push(booking);
+      saveBookings(bookings);
+      window.location.href = "bookings.html?paid=" + booking.ref;
+    });
+  </script>
+</body>
+</html>

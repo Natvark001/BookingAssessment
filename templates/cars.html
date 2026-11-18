@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getaway | Cars found</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body id="top">
+
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Get<span>away</span></a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">Holidays</a></li>
+          <li><a href="car-rentals.html" class="active">Car Rentals</a></li>
+          <li><a href="bookings.html">Bookings</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="results-head">
+        <div>
+          <h1 id="results-title">Cars</h1>
+          <p id="results-info"></p>
+        </div>
+        <a href="car-rentals.html" class="btn btn-outline">New search</a>
+      </div>
+
+      <!-- Results: car image, name and cost per day -->
+      <div class="grid grid-3" id="results"></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <span>&copy; 2026 Getaway</span>
+      <span>PNathaniel Oshoba</span>
+    </div>
+  </footer>
+
+  <a href="#top" class="to-top" id="to-top" aria-label="Back to top" hidden>&uarr;</a>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const location_ = getParam("location").trim() || "your location";
+    const date = getParam("date");
+    const age = Number(getParam("age")) || 30;
+
+    // Find the pick-up locations that match the search, e.g. "Nigeria" -> Abuja and Lagos.
+    // "London, UK" is treated as "London".
+    const query = getParam("location").split(",")[0].trim().toLowerCase();
+    const matched = PICKUP_LOCATIONS.filter(function (place) {
+      return query !== "" && (place.name + " " + place.search).toLowerCase().includes(query);
+    }).map(function (place) { return place.name; });
+
+    // Cars available at those locations that the driver is old enough to rent.
+    const atLocation = CARS.filter(function (car) {
+      return car.locations.some(function (name) { return matched.includes(name); });
+    });
+    const found = atLocation.filter(function (car) { return age >= car.minAge; });
+
+    document.getElementById("results-title").textContent =
+      found.length + (found.length === 1 ? " car" : " cars") + " found in " + location_;
+    document.getElementById("results-info").textContent =
+      "Pick-up " + niceDate(date) + " · Driver aged " + age;
+
+    const results = document.getElementById("results");
+    if (found.length === 0) {
+      results.className = "";
+      const reason = atLocation.length === 0
+        ? "Sorry, we have no cars there yet. Try one of these: " + PICKUP_LOCATIONS.map(function (p) { return p.name; }).join(", ") + "."
+        : "Drivers must be at least 21 years old to rent a car.";
+      results.innerHTML = `
+        <div class="message">
+          <p>${reason}</p>
+          <a href="car-rentals.html" class="btn btn-gold">Search again</a>
+        </div>`;
+    }
+
+    const searchInfo = new URLSearchParams({ location: getParam("location"), date: date, age: age });
+    found.forEach(function (car) {
+      results.innerHTML += `
+        <a class="card car-card" href="car.html?id=${car.id}&${searchInfo}">
+          <img src="${carImage(car)}" alt="${car.name}">
+          <div class="card-body">
+            <h3>${car.name}</h3>
+            <p class="company-name">${findCompany(car.company).name} · ${car.locations.filter(function (name) { return matched.includes(name); }).join(", ")}</p>
+            <p class="price">${money(car.price)} <small>per day</small></p>
+          </div>
+        </a>`;
+    });
+  </script>
+</body>
+</html>

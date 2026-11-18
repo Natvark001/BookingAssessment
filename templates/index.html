@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getaway | {%block title%}Holiday{%endblock%}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body id="top">
+
+  <!-- Navigation bar -->
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Get<span>away</span></a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="active">Holidays</a></li>
+          <li><a href="car-rentals.html">Car Rentals</a></li>
+          <li><a href="bookings.html">Bookings</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+{%block main%}
+  <!-- Hero banner -->
+  <section class="hero hero-holidays">
+    <div class="container">
+      <h1>Find your perfect getaway</h1>
+      <p>Hotels, resorts, islands and landmarks in Nigeria, Zanzibar, Madagascar, the UK, Paris and beyond.</p>
+    </div>
+  </section>
+
+  <main>
+    <!-- Search holidays form -->
+    <div class="container">
+      <section class="search-box">
+        <h2>Search holidays</h2>
+        <form action="results.html" method="get">
+          <div class="form-row">
+            <div class="field">
+              <label for="destination">Destination</label>
+              <input type="text" id="destination" name="destination" list="destination-list" placeholder="e.g. London" required>
+              <datalist id="destination-list"></datalist>
+            </div>
+            <div class="field">
+              <label for="date">Date</label>
+              <input type="date" id="date" name="date" required>
+            </div>
+            <div class="field">
+              <label for="adults">Adults</label>
+              <input type="number" id="adults" name="adults" min="1" max="10" value="2" required>
+            </div>
+            <div class="field">
+              <label for="children">Children</label>
+              <input type="number" id="children" name="children" min="0" max="10" value="0" required>
+            </div>
+            <button type="submit" class="btn btn-gold">Search</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Holiday ideas -->
+    <section class="section">
+      <div class="container">
+        <div class="section-title">
+          <h2>Holiday ideas</h2>
+          <p>Places to stay and explore around the world. Choose one to see the details.</p>
+        </div>
+        <div class="grid grid-2" id="ideas"></div>
+      </div>
+    </section>
+  </main>
+{%endblock%}
+<!-- Footer Area -->
+  <footer class="footer">
+    <div class="container">
+      <span>&copy; 2026 Getaway</span>
+      <span>Nathaniel Oshoba</span>
+    </div>
+  </footer>
+
+  <!-- Back to top arrow (appears after scrolling down) -->
+  <a href="#top" class="to-top" id="to-top" aria-label="Back to top" hidden>&uarr;</a>
+
+  <script src="/static/js/data.js"></script>
+  <script src="/static/js/main.js"></script>
+
+  {%block cutomjs%}
+  <script>
+    // Date can't be in the past
+    document.getElementById("date").min = todayISO();
+
+    // Destination suggestions
+    DESTINATIONS.forEach(function (name) {
+      document.getElementById("destination-list").appendChild(new Option(name));
+    });
+
+    // Holiday ideas: image and name only
+    const ideas = document.getElementById("ideas");
+    HOLIDAYS.filter(function (h) { return h.featured; }).forEach(function (holiday) {
+      ideas.innerHTML += `
+        <a class="card idea-card" href="/getaway/holiday?id=${holiday.id}">
+          <img src="${holidayImage(holiday)}" alt="${holiday.name}">
+          <div class="card-body">
+            <h3>${holiday.name}</h3>
+          </div>
+        </a>`;
+    });
+  </script>
+  {%endblock%}
+</body>
+</html>

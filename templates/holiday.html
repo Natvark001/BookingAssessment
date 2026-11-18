@@ -1,0 +1,104 @@
+{%extends 'index.html'%}
+{%block title%}{{location|title}}{%endblock%}
+
+{%block main%}
+  <main class="section">
+    <div class="container">
+      <!-- Back button (and Book button when coming from search results) -->
+      <div class="page-actions">
+        <a href="{{url_for('home_page')}}" class="btn btn-outline" id="back-btn">&larr; Back</a>
+        <a href="payment.html" class="btn btn-gold" id="book-btn" hidden>Book this holiday</a>
+      </div>
+
+      <div class="detail-head">
+        <h1 id="name">{{location|title}}</h1>
+        <p class="location"><span class="pin">&#9679;</span> <span id="location"></span></p>
+      </div>
+
+      <!-- Two big photos -->
+      <div class="photos">
+        <img id="photo-1" src="/static/images/holidays/{{location}}-1.jpg" alt="{{location}}">
+        <img id="photo-2" src="/static/images/holidays/{{location}}-2.jpg" alt="{{location}}">
+      </div>
+
+      <div class="detail-layout">
+        <div>
+          <h2>About</h2>
+          <p id="about"></p>
+
+          <h2>Things to do</h2>
+          <ul id="todo"></ul>
+        </div>
+
+        <aside class="info-box">
+          <h2>Holiday details</h2>
+          <dl class="info-list" id="details"></dl>
+        </aside>
+      </div>
+    </div>
+  </main>
+{%endblock%}
+ 
+  {%block cutomjs%}
+  <script>
+    const holiday = findHoliday(getParam("id")) || HOLIDAYS[{location}];
+    const fromSearch = getParam("from") === "search";
+
+    //document.title = "Getaway | " + holiday.name;
+    //document.getElementById("name").textContent = holiday.name;
+    document.getElementById("location").textContent = holiday.location;
+    document.getElementById("about").textContent = holiday.about;
+
+    //const photo1 = document.getElementById("photo-1");
+    //const photo2 = document.getElementById("photo-2");
+    //photo1.src = holidayImage(holiday, 1);
+    //photo2.src = holidayImage(holiday, 2);
+    //photo1.alt = holiday.name;
+    //photo2.alt = holiday.name;
+
+    holiday.todo.forEach(function (item) {
+      const li = document.createElement("li");
+      li.textContent = item;
+      document.getElementById("todo").appendChild(li);
+    });
+
+    // Holiday details box
+    const details = [
+      ["Type", holiday.type],
+      ["Location", holiday.location],
+      ["Where you'll stay", holiday.stay],
+      ["Best time to visit", holiday.bestTime],
+      ["Getting there", holiday.gettingThere],
+    ];
+
+    if (fromSearch) {
+      details.push(["Travel date", niceDate(getParam("date"))]);
+      details.push(["Guests", guestsText(getParam("adults"), getParam("children"))]);
+
+      // Back goes to the search results, Book goes to the payment page.
+      const search = new URLSearchParams({
+        destination: getParam("destination"), date: getParam("date"),
+        adults: getParam("adults"), children: getParam("children"),
+      });
+      document.getElementById("back-btn").href = "results.html?" + search;
+      const bookBtn = document.getElementById("book-btn");
+      bookBtn.href = "payment.html?type=holiday&id=" + holiday.id + "&" + search;
+      bookBtn.hidden = false;
+    }
+
+    const list = document.getElementById("details");
+    details.forEach(function (row) {
+      const item = document.createElement("div");
+      item.innerHTML = "<dt></dt><dd></dd>";
+      item.querySelector("dt").textContent = row[0];
+      item.querySelector("dd").textContent = row[1];
+      list.appendChild(item);
+    });
+
+    // Price at the bottom of the box
+    const priceRow = document.createElement("div");
+    priceRow.innerHTML = '<dt>Price</dt><dd><span class="big-price">' + money(holiday.price) + '</span> <span class="muted">per night</span></dd>';
+    list.appendChild(priceRow);
+  </script>
+  {%endblock%}
+

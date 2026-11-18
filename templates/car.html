@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getaway | Car details</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Get<span>away</span></a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">Holidays</a></li>
+          <li><a href="car-rentals.html" class="active">Car Rentals</a></li>
+          <li><a href="bookings.html">Bookings</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="page-actions">
+        <a href="cars.html" class="btn btn-outline" id="back-btn">&larr; Back</a>
+        <a href="payment.html" class="btn btn-gold" id="book-btn">Book this car</a>
+      </div>
+
+      <div class="car-layout">
+        <img id="car-photo" src="" alt="">
+
+        <div class="info-box">
+          <h1 id="name">Car</h1>
+          <p class="company-name" id="company"></p>
+          <p><span class="big-price" id="price"></span> <span class="muted">per day</span></p>
+          <p id="about"></p>
+
+          <dl class="specs" id="specs"></dl>
+
+          <dl class="info-list">
+            <div><dt>Pick-up location</dt><dd id="pickup"></dd></div>
+            <div><dt>Available in</dt><dd id="available"></dd></div>
+            <div><dt>Pick-up date</dt><dd id="pickup-date"></dd></div>
+            <div><dt>Included</dt><dd>Unlimited mileage, basic insurance and 24/7 breakdown cover</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <span>&copy; 2026 Getaway</span>
+      <span>Nathaniel Oshoba</span>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const car = findCar(getParam("id")) || CARS[0];
+    const search = new URLSearchParams({ location: getParam("location"), date: getParam("date"), age: getParam("age") });
+
+    document.title = "Getaway | " + car.name;
+    document.getElementById("name").textContent = car.name;
+    document.getElementById("company").textContent = "Supplied by " + findCompany(car.company).name;
+    document.getElementById("price").textContent = money(car.price);
+    document.getElementById("about").textContent = car.about;
+    document.getElementById("pickup").textContent = getParam("location") || "Not set";
+    document.getElementById("available").textContent = car.locations.join(", ");
+    document.getElementById("pickup-date").textContent = niceDate(getParam("date"));
+
+    const photo = document.getElementById("car-photo");
+    photo.src = carImage(car);
+    photo.alt = car.name;
+
+    // Car specifications
+    const specs = [
+      ["Seats", car.seats], ["Doors", car.doors],
+      ["Bags", car.bags + " large"], ["Gearbox", car.transmission],
+      ["Fuel", car.fuel], ["Category", car.category],
+      ["Air conditioning", "Yes"], ["Minimum age", car.minAge],
+    ];
+    specs.forEach(function (row) {
+      const item = document.createElement("div");
+      item.className = "spec";
+      item.innerHTML = "<dt></dt><dd></dd>";
+      item.querySelector("dt").textContent = row[0];
+      item.querySelector("dd").textContent = row[1];
+      document.getElementById("specs").appendChild(item);
+    });
+
+    document.getElementById("back-btn").href = "cars.html?" + search;
+    document.getElementById("book-btn").href = "payment.html?type=car&id=" + car.id + "&" + search;
+  </script>
+</body>
+</html>

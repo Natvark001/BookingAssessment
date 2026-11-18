@@ -1,0 +1,84 @@
+{%extends 'index.html'%}
+{%block title%}Bookings{%endblock%}
+{%block main%}
+  <main class="section">
+    <div class="container">
+      <div class="section-title">
+        <h1>My bookings</h1>
+        <p>The holidays and cars you have booked.</p>
+      </div>
+
+      <div class="alert" id="paid-alert" hidden></div>
+
+      <h2>Holidays booked</h2>
+      <div id="holiday-bookings"></div>
+
+      <h2 style="margin-top: 40px;">Cars booked</h2>
+      <div id="car-bookings"></div>
+    </div>
+  </main>
+{%endblock%}
+
+  {%block customjs%}
+  <script>
+    // Confirmation message after paying
+    const paidRef = getParam("paid");
+    if (paidRef) {
+      const alertBox = document.getElementById("paid-alert");
+      alertBox.textContent = "Payment successful! Your booking reference is " + paidRef + ".";
+      alertBox.hidden = false;
+    }
+
+    function bookingCard(booking) {
+      const isCar = booking.type === "car";
+      const item = isCar ? findCar(booking.id) : findHoliday(booking.id);
+      if (!item) return "";
+      const image = isCar ? carImage(item) : holidayImage(item);
+      const place = isCar ? "Pick-up in " + booking.location + " · " + findCompany(item.company).name : item.location;
+      const extra = isCar
+        ? booking.units + " day(s) from " + niceDate(booking.date)
+        : booking.units + " night(s) from " + niceDate(booking.date) + " · " + guestsText(booking.adults, booking.children);
+      return `
+        <div class="booking-card">
+          <img src="${image}" alt="${item.name}">
+          <div>
+            <span class="booking-ref">REF ${booking.ref}</span>
+            <h3>${item.name}</h3>
+            <p>${place}</p>
+            <p>${extra}</p>
+          </div>
+          <div class="price">
+            ${money(booking.total)}<br>
+            <small>Paid by card ending ${booking.cardEnding}</small><br>
+            <button type="button" class="link-button" data-ref="${booking.ref}">Cancel booking</button>
+          </div>
+        </div>`;
+    }
+
+    function showBookings() {
+      const bookings = getBookings();
+      const holidays = bookings.filter(function (b) { return b.type === "holiday"; });
+      const cars = bookings.filter(function (b) { return b.type === "car"; });
+
+      document.getElementById("holiday-bookings").innerHTML = holidays.length
+        ? holidays.map(bookingCard).join("")
+        : '<div class="message"><p>You have not booked a holiday yet.</p><a href="index.html" class="btn btn-gold">Find a holiday</a></div>';
+
+      document.getElementById("car-bookings").innerHTML = cars.length
+        ? cars.map(bookingCard).join("")
+        : '<div class="message"><p>You have not booked a car yet.</p><a href="car-rentals.html" class="btn btn-gold">Find a car</a></div>';
+    }
+
+    // Cancel a booking
+    document.addEventListener("click", function (event) {
+      const ref = event.target.dataset.ref;
+      if (!ref) return;
+      saveBookings(getBookings().filter(function (b) { return b.ref !== ref; }));
+      document.getElementById("paid-alert").hidden = true;
+      showBookings();
+    });
+
+    showBookings();
+  </script>
+  {%endblock%}
+

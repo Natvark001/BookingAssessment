@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getaway | Search results</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body id="top">
+
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Get<span>away</span></a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="active">Holidays</a></li>
+          <li><a href="car-rentals.html">Car Rentals</a></li>
+          <li><a href="bookings.html">Bookings</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <div class="results-head">
+        <div>
+          <h1 id="results-title">Holidays</h1>
+          <p id="results-info"></p>
+        </div>
+        <a href="index.html" class="btn btn-outline">New search</a>
+      </div>
+
+      <!-- Results: image, name and cost per night -->
+      <div class="grid grid-3" id="results"></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <span>&copy; 2026 Getaway</span>
+      <span>Photos from Wikimedia Commons</span>
+    </div>
+  </footer>
+
+  <a href="#top" class="to-top" id="to-top" aria-label="Back to top" hidden>&uarr;</a>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const destination = getParam("destination").trim();
+    const date = getParam("date");
+    const adults = getParam("adults") || "2";
+    const children = getParam("children") || "0";
+
+    // Match the destination against the name, city, country and search words.
+    // "London, UK" is treated as "London".
+    const query = destination.split(",")[0].trim().toLowerCase();
+    const found = HOLIDAYS.filter(function (h) {
+      const words = (h.name + " " + h.city + " " + h.country + " " + h.search).toLowerCase();
+      return query !== "" && words.includes(query);
+    });
+
+    // Heading, e.g. "8 holidays found in London"
+    const title = document.getElementById("results-title");
+    title.textContent = found.length + (found.length === 1 ? " holiday" : " holidays") + " found in " + (destination || "your search");
+    document.getElementById("results-info").textContent =
+      niceDate(date) + " · " + guestsText(adults, children);
+
+    const results = document.getElementById("results");
+    if (found.length === 0) {
+      results.className = "";
+      results.innerHTML = `
+        <div class="message">
+          <p>Sorry, we have no holidays there yet. Try one of these: ${DESTINATIONS.join(", ")}.</p>
+          <a href="index.html" class="btn btn-gold">Search again</a>
+        </div>`;
+    }
+
+    // Each result links to the holiday details page (with a Book button).
+    const searchInfo = new URLSearchParams({ destination: destination, date: date, adults: adults, children: children });
+    found.forEach(function (holiday) {
+      results.innerHTML += `
+        <a class="card" href="holiday.html?id=${holiday.id}&from=search&${searchInfo}">
+          <img src="${holidayImage(holiday)}" alt="${holiday.name}">
+          <div class="card-body">
+            <h3>${holiday.name}</h3>
+            <p class="price">${money(holiday.price)} <small>per night</small></p>
+          </div>
+        </a>`;
+    });
+  </script>
+</body>
+</html>

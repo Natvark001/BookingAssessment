@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getaway | Car Rentals</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body id="top">
+
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Get<span>away</span></a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">Holidays</a></li>
+          <li><a href="car-rentals.html" class="active">Car Rentals</a></li>
+          <li><a href="bookings.html">Bookings</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero hero-cars">
+    <div class="container">
+      <h1>Car rentals</h1>
+      <p>Pick up a car wherever your holiday takes you, from small city cars to luxury SUVs.</p>
+    </div>
+  </section>
+
+  <main>
+    <!-- Search cars form -->
+    <div class="container">
+      <section class="search-box">
+        <h2>Search cars</h2>
+        <form action="cars.html" method="get">
+          <div class="form-row three">
+            <div class="field">
+              <label for="location">Pick-up location</label>
+              <input type="text" id="location" name="location" list="location-list" placeholder="e.g. London" required>
+              <datalist id="location-list"></datalist>
+            </div>
+            <div class="field">
+              <label for="date">Pick-up date</label>
+              <input type="date" id="date" name="date" required>
+            </div>
+            <div class="field">
+              <label for="age">Driver's age</label>
+              <input type="number" id="age" name="age" min="18" max="99" value="30" required>
+            </div>
+            <button type="submit" class="btn btn-gold">Search</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Car hire companies -->
+    <section class="section">
+      <div class="container">
+        <div class="section-title">
+          <h2>Car hire companies</h2>
+          <p>Our trusted partners. Search above to see their cars.</p>
+        </div>
+        <div class="grid grid-3" id="companies"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <span>&copy; 2026 Getaway</span>
+      <span>Nathaniel Oshoba</span>
+    </div>
+  </footer>
+
+  <a href="#top" class="to-top" id="to-top" aria-label="Back to top" hidden>&uarr;</a>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.getElementById("date").min = todayISO();
+
+    DESTINATIONS.forEach(function (name) {
+      document.getElementById("location-list").appendChild(new Option(name));
+    });
+
+    // Company cards: initials, name, tagline and number of cars
+    const companies = document.getElementById("companies");
+    COMPANIES.forEach(function (company) {
+      const count = CARS.filter(function (car) { return car.company === company.id; }).length;
+      const initials = company.name.split(" ").map(function (word) { return word[0]; }).join("").slice(0, 2);
+      companies.innerHTML += `
+        <div class="company-card">
+          <div class="company-logo">${initials}</div>
+          <div>
+            <h3>${company.name}</h3>
+            <p>${company.tagline}</p>
+            <p><strong>${count} ${count === 1 ? "car" : "cars"}</strong></p>
+          </div>
+        </div>`;
+    });
+  </script>
+</body>
+</html>
